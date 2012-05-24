@@ -86,7 +86,7 @@ int main(int argc, char** argv)
 	      // skip it
 	      char diff = data_gt[c] - data[c];
 	      
-	      if(diff!=0)
+	      if(diff!=0 && data_gt[c]!=2 && data[c]!=2)
 		{
 		  // Check x direction
 		  if(i==0       || (data_gt[c-1]-data[c-1])!=diff) 
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	    {
 	      char diff = data_gt[c] - data[c];
 
-	      if(diff!=0)
+	      if(diff!=0 && data_gt[c]!=2 && data[c]!=2)
 		{
 		  unsigned int offset = 0;
 		  
