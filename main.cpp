@@ -22,8 +22,6 @@ int main(int argc, char** argv)
   int XYZ      = XSize*YSize*ZSize;
   int XYZ_plus = (XSize+1)*(YSize+1)*(ZSize+1);
 
-  int XYZ_plux3 = XYZ_plus*3;
-
   char* data    = new char[XYZ];
   char* data_gt = new char[XYZ];
 
@@ -45,7 +43,7 @@ int main(int argc, char** argv)
 	  pColor->R = 255;
 	  pColor->G = 0;
 	  pColor->B = 0;
-	  pColor->A = 125;
+	  pColor->A = 0;
 	}
 
   // Green vertices
@@ -61,7 +59,7 @@ int main(int argc, char** argv)
 	  pColor->R = 0;
 	  pColor->G = 255;
 	  pColor->B = 0;
-	  pColor->A = 125;
+	  pColor->A = 0;
 	}
 
   std::ifstream ifm;
@@ -73,6 +71,7 @@ int main(int argc, char** argv)
   ifm.read(data_gt, XYZ*sizeof(char));
   ifm.close();
   
+  unsigned int XY = XSize*YSize;
   // Count number of visible faces
   unsigned int IdxCount =0;
   c = 0;
@@ -88,7 +87,23 @@ int main(int argc, char** argv)
 	      char diff = data_gt[c] - data[c];
 	      
 	      if(diff!=0)
-		IdxCount+=24;
+		{
+		  // Check x direction
+		  if(i==0       || (data_gt[c-1]-data[c-1])!=diff) 
+		    IdxCount+=4;
+		  if(i==XSize-1 || (data_gt[c+1]-data[c+1])!=diff) 
+		    IdxCount+=4;	      
+		  // Check y direction
+		  if(j==0       || (data_gt[c-XSize]-data[c-XSize])!=diff) 
+		    IdxCount+=4;
+		  if(j==YSize-1 || (data_gt[c+XSize]-data[c+XSize])!=diff) 
+		    IdxCount+=4;
+		  // Check z direction
+		  if(k==0       || (data_gt[c-XY]-data[c-XY])!=diff)
+		    IdxCount+=4;
+		  if(k==ZSize-1 || (data_gt[c+XY]-data[c+XY])!=diff)    
+		    IdxCount+=4;		  
+		}
 
 	      c++;
 	    }
@@ -117,38 +132,56 @@ int main(int argc, char** argv)
 		{
 		  unsigned int offset = 0;
 		  
-		  // if(diff==1)
-		  //   offset = XYZ_plux3;
+		  if(diff==1)
+		    offset = XYZ_plus;
 
-		  idx[ic++] = offset + kXY   + jX   + i;
-		  idx[ic++] = offset + kXY_p + jX   + i;
-		  idx[ic++] = offset + kXY_p + jX_p + i;	      	  
-		  idx[ic++] = offset + kXY   + jX_p + i;
+		  if(i==0       || (data_gt[c-1]-data[c-1])!=diff) 
+		    {
+		      idx[ic++] = offset + kXY   + jX   + i;
+		      idx[ic++] = offset + kXY_p + jX   + i;
+		      idx[ic++] = offset + kXY_p + jX_p + i;	      	  
+		      idx[ic++] = offset + kXY   + jX_p + i;
+		    }
 
-		  idx[ic++] = offset + kXY   + jX   + i+1;
-		  idx[ic++] = offset + kXY   + jX_p + i+1;
-		  idx[ic++] = offset + kXY_p + jX_p + i+1;	 
-		  idx[ic++] = offset + kXY_p + jX   + i+1;
+		  if(i==XSize-1 || (data_gt[c+1]-data[c+1])!=diff) 
+		    {
+		      idx[ic++] = offset + kXY   + jX   + i+1;
+		      idx[ic++] = offset + kXY   + jX_p + i+1;
+		      idx[ic++] = offset + kXY_p + jX_p + i+1;	 
+		      idx[ic++] = offset + kXY_p + jX   + i+1;
+		    }
 
-		  idx[ic++] = offset + kXY   + jX  + i;
-		  idx[ic++] = offset + kXY   + jX  + i+1;
-		  idx[ic++] = offset + kXY_p + jX  + i+1;
-		  idx[ic++] = offset + kXY_p + jX  + i;
+		  if(j==0       || (data_gt[c-XSize]-data[c-XSize])!=diff) 
+		    {
+		      idx[ic++] = offset + kXY   + jX  + i;
+		      idx[ic++] = offset + kXY   + jX  + i+1;
+		      idx[ic++] = offset + kXY_p + jX  + i+1;
+		      idx[ic++] = offset + kXY_p + jX  + i;
+		    }
 
-		  idx[ic++] = offset + kXY_p + jX_p + i;
-		  idx[ic++] = offset + kXY_p + jX_p + i+1;
-		  idx[ic++] = offset + kXY   + jX_p + i+1;
-		  idx[ic++] = offset + kXY   + jX_p + i;	      	  	      	 	      	  
+		  if(j==YSize-1 || (data_gt[c+XSize]-data[c+XSize])!=diff) 
+		    {
+		      idx[ic++] = offset + kXY_p + jX_p + i;
+		      idx[ic++] = offset + kXY_p + jX_p + i+1;
+		      idx[ic++] = offset + kXY   + jX_p + i+1;
+		      idx[ic++] = offset + kXY   + jX_p + i; 
+		    }
+		  
+		  if(k==0       || (data_gt[c-XY]-data[c-XY])!=diff)
+		    {
+		      idx[ic++] = offset + kXY   + jX   + i;		  		 
+		      idx[ic++] = offset + kXY   + jX_p + i;
+		      idx[ic++] = offset + kXY   + jX_p + i+1;
+		      idx[ic++] = offset + kXY   + jX   + i+1;
+		    }
 
-		  idx[ic++] = offset + kXY   + jX   + i;		  		 
-		  idx[ic++] = offset + kXY   + jX_p + i;
-		  idx[ic++] = offset + kXY   + jX_p + i+1;
-		  idx[ic++] = offset + kXY   + jX   + i+1;
-
-		  idx[ic++] = offset + kXY_p + jX   + i;		       
-		  idx[ic++] = offset + kXY_p + jX   + i+1;
-		  idx[ic++] = offset + kXY_p + jX_p + i+1;
-		  idx[ic++] = offset + kXY_p + jX_p + i;
+		  if(k==ZSize-1 || (data_gt[c+XY]-data[c+XY])!=diff)    
+		    {
+		      idx[ic++] = offset + kXY_p + jX   + i;		       
+		      idx[ic++] = offset + kXY_p + jX   + i+1;
+		      idx[ic++] = offset + kXY_p + jX_p + i+1;
+		      idx[ic++] = offset + kXY_p + jX_p + i;
+		    }
 
 		}
 	           
