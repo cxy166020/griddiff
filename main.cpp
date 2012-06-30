@@ -192,6 +192,21 @@ int main(int argc, char** argv)
 
   std::cout << "IdxCount: " << IdxCount << std::endl;
 
+  // Clean up unsed vertices
+  float*        cVertices = new float[IdxCount*4];
+  unsigned int* cIdx      = new unsigned int[IdxCount];  
+
+  unsigned int v=0;
+  for(unsigned int i=0; i<IdxCount; i++)
+    {
+      cVertices[v++] = vertices[idx[i]*4  ];
+      cVertices[v++] = vertices[idx[i]*4+1];
+      cVertices[v++] = vertices[idx[i]*4+2];
+      cVertices[v++] = vertices[idx[i]*4+3];
+
+      cIdx[i] = i;
+    }
+
 
   // Write results to output file
   std::ofstream ofm;
@@ -199,7 +214,7 @@ int main(int argc, char** argv)
 
   ofm << "ply"                                               << std::endl;
   ofm << "format binary_little_endian 1.0"                   << std::endl;
-  ofm << "element vertex "  << XYZ_plus*2                    << std::endl;
+  ofm << "element vertex "  << IdxCount                      << std::endl;
   ofm << "property float x"                                  << std::endl;
   ofm << "property float y"                                  << std::endl;
   ofm << "property float z"                                  << std::endl;
@@ -212,7 +227,7 @@ int main(int argc, char** argv)
   ofm << "end_header"                                        << std::endl;
 
   // Write vertex
-  ofm.write((char*)vertices, XYZ_plus*8*sizeof(float));
+  ofm.write((char*)cVertices, IdxCount*4*sizeof(float));
 
   // Write faces
   unsigned char face_c = 4;
@@ -221,7 +236,7 @@ int main(int argc, char** argv)
   for(unsigned int i=0; i<IdxCount; i+=4)
     {
       ofm.write((char*)&face_c, 1);	  
-      ofm.write((char*)&idx[i], FaceSize);
+      ofm.write((char*)&cIdx[i], FaceSize);
     }
 
   ofm.close();
@@ -230,6 +245,9 @@ int main(int argc, char** argv)
   delete[] data_gt;
   delete[] vertices;
   delete[] idx;
+
+  delete[] cVertices;
+  delete[] cIdx;
 
   return 0;
 }
